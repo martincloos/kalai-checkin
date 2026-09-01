@@ -15,7 +15,7 @@ dominio que no hay que "arreglar".
 |---|---|
 | 0 — Relevamiento | ✅ cerrada (`../CHECKIN-FASE0-RELEVAMIENTO.md`) |
 | 1 — Schema y permisos | ✅ aplicada y verificada (`coach-data`, `035`–`038`, RLS probada con dos usuarios reales el 2026-09-01) |
-| 2 — Ventanas (staff) | ⏸ |
+| 2 — Ventanas (staff) | 🔄 `staff/VentanasSection.tsx` construida, falta integrarla en `management-site` y probarla en el navegador |
 | 3 — RPC + pantalla del declarante | ⏸ el RPC ya existe en `038`; falta la UI |
 | 4 — Tabla de control del staff | ⏸ |
 | 5 — Carga inicial y altas | ⏸ |

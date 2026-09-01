@@ -7,6 +7,8 @@ import type {
   CheckinHistoryEntry,
   CheckinWindow,
   CrewMember,
+  EventClass,
+  NewCheckinWindow,
 } from './types'
 
 // Este paquete NUNCA crea su propio cliente de Supabase: lo recibe. Coach
@@ -134,4 +136,76 @@ export async function listWindowsByDay(
     .eq('day', day)
   if (error) throw error
   return (data ?? []) as CheckinWindow[]
+}
+
+/** Todas las ventanas de un evento, sin filtrar por día — para la pantalla de configuración del staff. */
+export async function listEventWindows(supabase: SupabaseClient, eventId: string): Promise<CheckinWindow[]> {
+  const { data, error } = await k(supabase)
+    .from('checkin_windows')
+    .select('*')
+    .eq('event_id', eventId)
+    .order('day', { ascending: true })
+    .order('starts_at', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as CheckinWindow[]
+}
+
+/**
+ * Crea una ventana. La RLS y el trigger `enforce_checkin_window_edit` (037)
+ * son quienes realmente validan — acá no se duplica esa lógica, solo se
+ * deja que el error de la base (por ejemplo, "ya existe una ventana de
+ * ese tipo para esa clase ese día") suba tal cual al llamador.
+ */
+export async function createCheckinWindow(
+  supabase: SupabaseClient,
+  input: NewCheckinWindow,
+): Promise<CheckinWindow> {
+  const { data, error } = await k(supabase).from('checkin_windows').insert(input).select().single()
+  if (error) throw error
+  return data as CheckinWindow
+}
+
+/**
+ * Edita una ventana existente (típicamente para extender el fin de una en
+ * curso). El trigger de la base rechaza tocar una ventana ya cerrada, o
+ * acortarla a menos de 10 minutos desde ahora — esos errores suben tal
+ * cual, no se re-validan acá.
+ */
+export async function updateCheckinWindow(
+  supabase: SupabaseClient,
+  windowId: string,
+  patch: Partial<Pick<CheckinWindow, 'day' | 'starts_at' | 'ends_at'>>,
+): Promise<CheckinWindow> {
+  const { data, error } = await k(supabase).from('checkin_windows').update(patch).eq('id', windowId).select().single()
+  if (error) throw error
+  return data as CheckinWindow
+}
+
+/** Borra una ventana. El trigger de la base rechaza borrar una ya cerrada. */
+export async function deleteCheckinWindow(supabase: SupabaseClient, windowId: string): Promise<void> {
+  const { error } = await k(supabase).from('checkin_windows').delete().eq('id', windowId)
+  if (error) throw error
+}
+
+/** Clases del evento, para poblar el selector al crear una ventana. */
+export async function listEventClasses(supabase: SupabaseClient, eventId: string): Promise<EventClass[]> {
+  const { data, error } = await k(supabase).from('event_classes').select('*').eq('event_id', eventId).order('name')
+  if (error) throw error
+  return (data ?? []) as EventClass[]
+}
+
+/**
+ * Crea una clase a mano. Necesario porque las clases hoy solo se
+ * completan por backfill desde el roster (029/035) o por el importador de
+ * CSV (Fase 5, todavía sin construir) — el staff necesita poder armar el
+ * cronograma de ventanas ANTES de tener el roster cargado.
+ */
+export async function createEventClass(supabase: SupabaseClient, eventId: string, name: string): Promise<EventClass> {
+  const { data, error } = await k(supabase)
+    .from('event_classes')
+    .insert({ event_id: eventId, name })
+    .select()
+    .single()
+  if (error) throw error
+  return data as EventClass
 }

@@ -62,6 +62,16 @@ export interface ActiveWindow extends CheckinWindow {
   class_name: string
 }
 
+/** Lo que hace falta para crear una ventana — el resto lo completa la base. */
+export interface NewCheckinWindow {
+  event_id: string
+  class_id: string
+  kind: WindowKind
+  day: string
+  starts_at: string
+  ends_at: string
+}
+
 /** Estado vigente de un barco en una ventana: el último evento declarado. */
 export interface BoatCheckState {
   entrant_id: string

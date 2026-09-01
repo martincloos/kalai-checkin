@@ -8,6 +8,39 @@ Data, así que se documentan en
 
 ---
 
+## 2026-09-01 — Repo pusheado a GitHub + pantalla de Ventanas (Fase 2)
+
+- **El repo pasó a existir en GitHub**: `github.com/fgentile123/kalai-checkin`
+  (privado). Vive bajo la cuenta personal de Fran, no bajo `martincloos`
+  como el resto del ecosistema — colaborador no puede crear repos en la
+  cuenta de otro. Se puede transferir después con "Transfer ownership" de
+  GitHub sin perder historial, si hace falta unificar. Necesario para que
+  `management-site` lo consuma como dependencia git pineada a un SHA,
+  mismo mecanismo que `kalai-ui`.
+- **Qué se hizo**: `src/staff/VentanasSection.tsx` — pantalla de staff
+  para crear/editar/borrar ventanas de check-in (Salida/Regreso por clase
+  y por día) y dar de alta clases a mano (necesario porque hoy las clases
+  solo se completan por backfill del roster o por el importador de CSV,
+  todavía sin construir — el staff tiene que poder armar el cronograma
+  antes de tener el roster cargado). Sin CSS propio: usa las clases ya
+  definidas en `globals.css` de `management-site` (decisión D6).
+  - El estado mostrado (Programada/Abierta/Cerrada) se calcula en el
+    cliente solo para el badge visual — la base decide de verdad qué
+    ventana acepta declaraciones (`kalai.checkin_window_status`), acá no
+    se duplica esa lógica de negocio.
+  - Los errores del trigger `enforce_checkin_window_edit` (ventana ya
+    cerrada, acortar a menos de 10 minutos) suben tal cual del backend a
+    la UI — no se re-valida nada de eso en el cliente.
+- Se agregaron a `queries.ts`: `listEventWindows`, `createCheckinWindow`,
+  `updateCheckinWindow`, `deleteCheckinWindow`, `listEventClasses`,
+  `createEventClass`.
+- **Verificado**: `pnpm typecheck` y `pnpm build` limpios, `dist/staff/`
+  se genera con la estructura que espera el subpath export ya declarado
+  en `package.json`. **Sin probar en un navegador real todavía** — falta
+  integrarla en `management-site` y probarla contra el evento real.
+
+---
+
 ## 2026-08-26 — Creación del repo: tipos, capa de consultas y CSV (Fase 1)
 
 - **Qué se hizo**: scaffold del paquete (`package.json` con subpath

@@ -10,6 +10,7 @@ export type {
   BoatCheckState,
   CheckinHistoryEntry,
   BatchEntry,
+  NewCheckinWindow,
 } from './types'
 
 export {
@@ -19,6 +20,12 @@ export {
   getCheckinHistory,
   submitCheckinBatch,
   listWindowsByDay,
+  listEventWindows,
+  createCheckinWindow,
+  updateCheckinWindow,
+  deleteCheckinWindow,
+  listEventClasses,
+  createEventClass,
 } from './queries'
 
 export { parseCsv, guessFieldMap, parseFlexibleDate } from './csv'
