@@ -143,6 +143,7 @@ export default function VentanasSection({ supabase, eventId, userId, canEdit, lo
         day,
         starts_at: combineLocal(day, startTime),
         ends_at: combineLocal(day, endTime),
+        created_by: userId,
       })
       setNewWindow({ class_id: '', kind: 'salida', day: '', startTime: '', endTime: '' })
       setShowAddWindow(false)

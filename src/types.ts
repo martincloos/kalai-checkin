@@ -70,6 +70,7 @@ export interface NewCheckinWindow {
   day: string
   starts_at: string
   ends_at: string
+  created_by?: string
 }
 
 /** Estado vigente de un barco en una ventana: el último evento declarado. */
