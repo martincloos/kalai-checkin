@@ -1,0 +1,46 @@
+{
+  "name": "kalai-checkin",
+  "version": "0.1.0",
+  "description": "Módulo de check-in/check-out de embarcaciones de Kalai Analytics: tipos, capa de consultas y pantallas, consumidas por Coach Data (declarante) y management-site (staff).",
+  "license": "UNLICENSED",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./declarante": {
+      "types": "./dist/declarante/index.d.ts",
+      "default": "./dist/declarante/index.js"
+    },
+    "./staff": {
+      "types": "./dist/staff/index.d.ts",
+      "default": "./dist/staff/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2",
+    "react": "*"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "^2.44.4",
+    "@types/react": "^19",
+    "react": "19.1.0",
+    "typescript": "^5.3.3"
+  }
+}
