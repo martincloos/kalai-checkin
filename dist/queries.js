@@ -217,6 +217,19 @@ export async function listDeclarantCandidates(supabase, eventId) {
     if (error)
         throw error;
     const members = (memberRows ?? []);
+    // El fundador del evento NO tiene fila en event_memberships: esa tabla se
+    // llena al aceptar una invitación (023), y quien crea el evento nunca pasa
+    // por ese flujo. Sin esto, el admin que además baja al agua con sus barcos
+    // no aparecería en la lista, que es justamente el caso de un club chico.
+    const { data: eventRow } = await k(supabase)
+        .from('events')
+        .select('created_by')
+        .eq('id', eventId)
+        .maybeSingle();
+    const founderId = eventRow?.created_by;
+    if (founderId && !members.some((m) => m.user_id === founderId)) {
+        members.push({ user_id: founderId, role: 'admin' });
+    }
     if (members.length === 0)
         return [];
     const { data: profileRows, error: profileError } = await supabase
