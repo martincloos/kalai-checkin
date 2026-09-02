@@ -94,3 +94,23 @@ export interface BatchEntry {
   entrant_id: string
   checked: boolean
 }
+
+/**
+ * Alguien que puede quedar asignado como declarante de un barco. Es una
+ * CUENTA real (`public.profiles`), no una fila del roster de entrenadores:
+ * `entrant_declarants.user_id` apunta a un usuario que ya se registró.
+ */
+export interface DeclarantCandidate {
+  user_id: string
+  email: string
+  name: string | null
+  /** Rol en el evento (`kalai.event_memberships`). */
+  role: string
+}
+
+/** Una asignación vigente usuario ↔ barco. */
+export interface DeclarantAssignment {
+  id: string
+  entrant_id: string
+  user_id: string
+}

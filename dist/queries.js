@@ -175,6 +175,117 @@ export async function deleteCheckinWindow(supabase, windowId) {
     if (error)
         throw error;
 }
+/**
+ * Todos los barcos del evento — vista de STAFF, no de declarante.
+ *
+ * A diferencia de `listMyBoats`, no filtra por clase: la RLS del staff
+ * (036) devuelve el roster completo. Es lo que alimenta la pantalla de
+ * asignación.
+ */
+export async function listAllBoats(supabase, eventId) {
+    const { data, error } = await k(supabase)
+        .from('event_entrants')
+        .select('id, event_id, class_id, club_id, full_name, sail_number, entrant_crew(*)')
+        .eq('event_id', eventId)
+        .order('full_name');
+    if (error)
+        throw error;
+    return (data ?? []).map((row) => {
+        const { entrant_crew, ...boat } = row;
+        return {
+            ...boat,
+            crew: (entrant_crew ?? []).slice().sort((a, b) => a.position - b.position),
+        };
+    });
+}
+/**
+ * Quiénes pueden quedar asignados como declarantes de este evento.
+ *
+ * Son los MIEMBROS del evento, o sea cuentas reales ya registradas — no las
+ * filas de `event_coaches`, que son texto libre con email y no tienen
+ * usuario detrás. Un entrenador cargado en el roster no aparece acá hasta
+ * que acepta su invitación y se crea su perfil.
+ *
+ * `event_memberships` vive en el schema `kalai` y `profiles` en `public`,
+ * así que son dos consultas: PostgREST no puede cruzar schemas en un embed.
+ */
+export async function listDeclarantCandidates(supabase, eventId) {
+    const { data: memberRows, error } = await k(supabase)
+        .from('event_memberships')
+        .select('user_id, role')
+        .eq('event_id', eventId);
+    if (error)
+        throw error;
+    const members = (memberRows ?? []);
+    if (members.length === 0)
+        return [];
+    const { data: profileRows, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email, name')
+        .in('id', members.map((m) => m.user_id));
+    if (profileError)
+        throw profileError;
+    const byId = new Map((profileRows ?? []).map((p) => [p.id, p]));
+    return members
+        .map((m) => {
+        const p = byId.get(m.user_id);
+        return {
+            user_id: m.user_id,
+            // Si el perfil no es legible (RLS), al menos no se rompe la pantalla.
+            email: p?.email ?? m.user_id,
+            name: p?.name ?? null,
+            role: m.role,
+        };
+    })
+        .sort((a, b) => (a.name ?? a.email).localeCompare(b.name ?? b.email));
+}
+/** Todas las asignaciones vigentes del evento (vista de staff). */
+export async function listEventAssignments(supabase, eventId) {
+    const { data, error } = await k(supabase)
+        .from('entrant_declarants')
+        .select('id, entrant_id, user_id, event_entrants!inner(event_id)')
+        .eq('event_entrants.event_id', eventId);
+    if (error)
+        throw error;
+    return (data ?? []).map((row) => ({
+        id: row.id,
+        entrant_id: row.entrant_id,
+        user_id: row.user_id,
+    }));
+}
+/**
+ * Deja la asignación de UNA persona exactamente como la dejó el staff en
+ * pantalla: agrega los barcos nuevos y borra los que sacó.
+ *
+ * No es un RPC transaccional a propósito: `entrant_declarants` no es el log
+ * append-only (ese es `checkin_events`). Acá borrar una asignación es una
+ * corrección legítima y no destruye ningún registro de declaración — los
+ * `checkin_events` ya emitidos por esa persona quedan intactos, con su
+ * autoría.
+ */
+export async function setDeclarantBoats(supabase, userId, assignedBy, currentEntrantIds, nextEntrantIds) {
+    const current = new Set(currentEntrantIds);
+    const next = new Set(nextEntrantIds);
+    const toAdd = [...next].filter((id) => !current.has(id));
+    const toRemove = [...current].filter((id) => !next.has(id));
+    if (toAdd.length > 0) {
+        const { error } = await k(supabase)
+            .from('entrant_declarants')
+            .insert(toAdd.map((entrant_id) => ({ entrant_id, user_id: userId, assigned_by: assignedBy })));
+        if (error)
+            throw error;
+    }
+    if (toRemove.length > 0) {
+        const { error } = await k(supabase)
+            .from('entrant_declarants')
+            .delete()
+            .eq('user_id', userId)
+            .in('entrant_id', toRemove);
+        if (error)
+            throw error;
+    }
+    return { added: toAdd.length, removed: toRemove.length };
+}
 /** Clases del evento, para poblar el selector al crear una ventana. */
 export async function listEventClasses(supabase, eventId) {
     const { data, error } = await k(supabase).from('event_classes').select('*').eq('event_id', eventId).order('name');

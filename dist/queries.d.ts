@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { ActiveWindow, BatchEntry, Boat, BoatCheckState, CheckinHistoryEntry, CheckinWindow, EventClass, NewCheckinWindow } from './types';
+import type { ActiveWindow, BatchEntry, Boat, BoatCheckState, CheckinHistoryEntry, CheckinWindow, DeclarantAssignment, DeclarantCandidate, EventClass, NewCheckinWindow } from './types';
 /**
  * Los eventos en los que el usuario tiene al menos un barco asignado para
  * declarar.
@@ -74,6 +74,42 @@ export declare function createCheckinWindow(supabase: SupabaseClient, input: New
 export declare function updateCheckinWindow(supabase: SupabaseClient, windowId: string, patch: Partial<Pick<CheckinWindow, 'day' | 'starts_at' | 'ends_at'>>): Promise<CheckinWindow>;
 /** Borra una ventana. El trigger de la base rechaza borrar una ya cerrada. */
 export declare function deleteCheckinWindow(supabase: SupabaseClient, windowId: string): Promise<void>;
+/**
+ * Todos los barcos del evento — vista de STAFF, no de declarante.
+ *
+ * A diferencia de `listMyBoats`, no filtra por clase: la RLS del staff
+ * (036) devuelve el roster completo. Es lo que alimenta la pantalla de
+ * asignación.
+ */
+export declare function listAllBoats(supabase: SupabaseClient, eventId: string): Promise<Boat[]>;
+/**
+ * Quiénes pueden quedar asignados como declarantes de este evento.
+ *
+ * Son los MIEMBROS del evento, o sea cuentas reales ya registradas — no las
+ * filas de `event_coaches`, que son texto libre con email y no tienen
+ * usuario detrás. Un entrenador cargado en el roster no aparece acá hasta
+ * que acepta su invitación y se crea su perfil.
+ *
+ * `event_memberships` vive en el schema `kalai` y `profiles` en `public`,
+ * así que son dos consultas: PostgREST no puede cruzar schemas en un embed.
+ */
+export declare function listDeclarantCandidates(supabase: SupabaseClient, eventId: string): Promise<DeclarantCandidate[]>;
+/** Todas las asignaciones vigentes del evento (vista de staff). */
+export declare function listEventAssignments(supabase: SupabaseClient, eventId: string): Promise<DeclarantAssignment[]>;
+/**
+ * Deja la asignación de UNA persona exactamente como la dejó el staff en
+ * pantalla: agrega los barcos nuevos y borra los que sacó.
+ *
+ * No es un RPC transaccional a propósito: `entrant_declarants` no es el log
+ * append-only (ese es `checkin_events`). Acá borrar una asignación es una
+ * corrección legítima y no destruye ningún registro de declaración — los
+ * `checkin_events` ya emitidos por esa persona quedan intactos, con su
+ * autoría.
+ */
+export declare function setDeclarantBoats(supabase: SupabaseClient, userId: string, assignedBy: string, currentEntrantIds: string[], nextEntrantIds: string[]): Promise<{
+    added: number;
+    removed: number;
+}>;
 /** Clases del evento, para poblar el selector al crear una ventana. */
 export declare function listEventClasses(supabase: SupabaseClient, eventId: string): Promise<EventClass[]>;
 /**

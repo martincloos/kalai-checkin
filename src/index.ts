@@ -11,9 +11,15 @@ export type {
   CheckinHistoryEntry,
   BatchEntry,
   NewCheckinWindow,
+  DeclarantCandidate,
+  DeclarantAssignment,
 } from './types'
 
 export {
+  listAllBoats,
+  listDeclarantCandidates,
+  listEventAssignments,
+  setDeclarantBoats,
   listMyCheckinEvents,
   listActiveWindows,
   listMyBoats,
