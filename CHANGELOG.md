@@ -8,6 +8,50 @@ Data, así que se documentan en
 
 ---
 
+## 2026-09-02 — Pantalla del declarante (Fase 2) + el paquete deja de compilarse al instalarse
+
+- **`src/declarante/CheckinSection.tsx`**: el componente React Native que
+  Coach Data renderiza arriba de todo en `(tabs)/index.tsx` (decisión D3).
+  Un banner por cada ventana **abierta ahora** que le corresponda al
+  usuario, sus barcos con **un checkbox por barco**, y Guardar. Si no hay
+  ninguna ventana abierta **no renderiza nada** — la pantalla principal de
+  Coach Data es la de sesión y este módulo no puede ocuparle espacio los
+  días que no hay check-in.
+  - Se manda siempre el estado completo de la ventana: el delta lo calcula
+    `submit_checkin_batch` en la base, y un envío sin cambios no registra
+    nada (regla 4 del CLAUDE.md).
+  - Después de guardar se recarga desde la base en vez de confiar en el
+    estado local, para que se vea si otro declarante tocó los mismos
+    barcos mientras tanto (regla 3: gana el último que aprieta Guardar).
+  - El estado abierta/cerrada no se recalcula acá: si el server no
+    devuelve la ventana como activa, no aparece.
+- **Query nueva `listMyCheckinEvents`**: la app mobile de Coach Data no
+  tiene contexto de evento (no hay selector ni nada parecido), así que el
+  banner tiene que descubrir solo en qué evento está parado. Va contra
+  `entrant_declarants` (RLS `user_id = auth.uid()`) y **no** contra
+  `event_entrants`, para que a alguien que además sea staff no le aparezca
+  el roster completo por esta ventana.
+- **Bug latente arreglado**: `package.json` ya declaraba el subpath
+  `"./declarante"` apuntando a `dist/declarante/index.js`, que no se
+  generaba. Cualquier `import` de `kalai-checkin/declarante` fallaba.
+- ⚠️ **Cambio de mecanismo de distribución: `dist/` se commitea y se sacó
+  el `prepare`.** Compilar al instalarse rompía el deploy de
+  `management-site` en Vercel, de forma no obvia: Vercel pone el store de
+  pnpm **dentro** del proyecto, el `prepare` corre un `pnpm install` en un
+  temp dir de ese store, ese install camina hacia arriba, encuentra la raíz
+  del consumidor y lo reinstala entero — lo que vuelve a preparar este
+  paquete. Recursión infinita (9 niveles anidados, 349 paquetes por nivel)
+  hasta que dos ramas paralelas chocan con `ERR_PNPM_EEXIST`. Localmente
+  no se reproduce nunca porque ahí el store vive fuera del proyecto.
+  **Contrapartida: hay que correr `pnpm build` y commitear `dist/` antes de
+  pushear.**
+- `kalai-ui` y `react-native` quedan como peer deps **opcionales** (y
+  devDeps para poder compilar acá). Al no haber `prepare`, `management-site`
+  ya no instala nada de eso.
+- **Verificado**: `pnpm typecheck` y `pnpm build` limpios, `dist/declarante/`
+  generado. **Sin probar en un dispositivo todavía** — falta integrarlo en
+  Coach Data y correrlo en Expo.
+
 ## 2026-09-02 — El repo se transfirió a `martincloos` y pasó a ser público
 
 - **Dueño nuevo**: `github.com/martincloos/kalai-checkin`. La URL vieja
