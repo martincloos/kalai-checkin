@@ -8,13 +8,33 @@ Data, así que se documentan en
 
 ---
 
+## 2026-09-02 — El repo se transfirió a `martincloos` y pasó a ser público
+
+- **Dueño nuevo**: `github.com/martincloos/kalai-checkin`. La URL vieja
+  (`fgentile123/kalai-checkin`) hoy responde con un redirect 301 de GitHub,
+  pero **no hay que apoyarse en eso**: el redirect se pierde si alguien
+  crea un repo nuevo con ese nombre en la cuenta vieja.
+- **Visibilidad: público** (antes privado). Revisado antes de dar por buena
+  la situación: el paquete **no contiene secretos** — es UI, tipos y capa
+  de consultas, sin claves ni URLs de proyecto. Las claves viven en las
+  env vars de quien lo consume.
+- **Quién lo hizo**: no fue en esta sesión. La API de GitHub marca el
+  cambio a las `2026-09-01T20:19Z`, posterior al último push del repo
+  (`14:01Z`). Confirmado con Fran el 2026-09-02 que la transferencia es
+  definitiva.
+- **Qué se actualizó en consecuencia**: la URL de la dependencia y la clave
+  de `allowBuilds` en `management-site` (ver su CHANGELOG, entrada del
+  2026-09-02) y el remote local de este repo.
+
 ## 2026-09-01 — Repo pusheado a GitHub + pantalla de Ventanas (Fase 2)
 
 - **El repo pasó a existir en GitHub**: `github.com/fgentile123/kalai-checkin`
   (privado). Vive bajo la cuenta personal de Fran, no bajo `martincloos`
   como el resto del ecosistema — colaborador no puede crear repos en la
   cuenta de otro. Se puede transferir después con "Transfer ownership" de
-  GitHub sin perder historial, si hace falta unificar. Necesario para que
+  GitHub sin perder historial, si hace falta unificar. **[Desactualizado:
+  eso ya pasó el 2026-09-01 — hoy es `martincloos/kalai-checkin` y es
+  público. Ver entrada del 2026-09-02.]** Necesario para que
   `management-site` lo consuma como dependencia git pineada a un SHA,
   mismo mecanismo que `kalai-ui`.
 - **Qué se hizo**: `src/staff/VentanasSection.tsx` — pantalla de staff
