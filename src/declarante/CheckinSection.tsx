@@ -18,7 +18,7 @@
 //    teléfono. Acá no se recalcula nada: si el server no la devuelve como
 //    activa, no aparece.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Button, Card, CheckIcon, useTheme } from 'kalai-ui'
@@ -87,18 +87,32 @@ export default function CheckinSection({ supabase, refreshToken }: CheckinSectio
   // Un error tampoco se traga en silencio, pero solo se muestra si el
   // usuario tiene algo que ver con el check-in.
   if (error) {
-    return <ErrorBanner message={error} onRetry={() => void load()} />
+    return (
+      <Shell>
+        <ErrorBanner message={error} onRetry={() => void load()} />
+      </Shell>
+    )
   }
 
   if (windows.length === 0) return null
 
   return (
-    <View style={{ gap: 12, marginBottom: 16 }}>
+    <Shell>
       {windows.map((w) => (
         <WindowCard key={w.id} supabase={supabase} window={w} />
       ))}
-    </View>
+    </Shell>
   )
+}
+
+/**
+ * El padding vive acá adentro y no en el contenedor del host a propósito:
+ * cuando no hay ninguna ventana abierta el componente devuelve null, y un
+ * View con padding en Coach Data dejaría una franja vacía arriba de la
+ * pantalla de sesión todos los días que no hay check-in.
+ */
+function Shell({ children }: { children: ReactNode }) {
+  return <View style={{ gap: 12, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>{children}</View>
 }
 
 function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {

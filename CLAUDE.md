@@ -36,10 +36,22 @@ login propio, no tiene base de datos propia.
 | `coach-data` (Expo/RN) | Pantalla del **declarante**: banners + tabla + Guardar | Banner arriba de todo en `apps/mobile/app/(tabs)/index.tsx`, siempre visible (decisión D3) |
 | `management-site` (Next) | Pantallas de **staff**: ventanas, import, asignación, tabla de control | Renderizadas dentro de esa app (decisión D2) |
 
-El mecanismo es el mismo que ya usa `kalai-ui`: **dependencia git pineada
-a un commit SHA**, distribuida como fuente TS que compila al instalarse
-(`prepare: tsc`). No hay registry privado — actualizar el paquete es
-cambiar el SHA a mano en el `package.json` del consumidor.
+**Dependencia git pineada a un commit SHA**, igual que `kalai-ui`. No hay
+registry privado — actualizar el paquete es cambiar el SHA a mano en el
+`package.json` del consumidor.
+
+⚠️ **A diferencia de `kalai-ui`, este paquete NO se compila al instalarse.**
+`dist/` está commiteado y no hay script `prepare`. **Hay que correr
+`pnpm build` y commitear `dist/` antes de cada push**, o los consumidores
+se quedan con la versión vieja del código compilado.
+
+Por qué: con `prepare: tsc`, el deploy de `management-site` en Vercel entra
+en recursión infinita. Vercel ubica el store de pnpm dentro del proyecto,
+el `prepare` corre un `pnpm install` en un temp dir de ese store, ese
+install encuentra la raíz del consumidor y lo reinstala entero, lo que
+vuelve a preparar este paquete. Localmente no se reproduce (el store vive
+fuera del proyecto). Detalle completo en el CHANGELOG de `management-site`,
+entrada del 2026-09-02.
 
 Por eso el repo es **un solo paquete en la raíz** y no un monorepo con
 `packages/`: ni npm ni pnpm pueden instalar un subdirectorio de un repo

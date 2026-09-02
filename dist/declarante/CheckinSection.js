@@ -64,11 +64,20 @@ export default function CheckinSection({ supabase, refreshToken }) {
     // Un error tampoco se traga en silencio, pero solo se muestra si el
     // usuario tiene algo que ver con el check-in.
     if (error) {
-        return _jsx(ErrorBanner, { message: error, onRetry: () => void load() });
+        return (_jsx(Shell, { children: _jsx(ErrorBanner, { message: error, onRetry: () => void load() }) }));
     }
     if (windows.length === 0)
         return null;
-    return (_jsx(View, { style: { gap: 12, marginBottom: 16 }, children: windows.map((w) => (_jsx(WindowCard, { supabase: supabase, window: w }, w.id))) }));
+    return (_jsx(Shell, { children: windows.map((w) => (_jsx(WindowCard, { supabase: supabase, window: w }, w.id))) }));
+}
+/**
+ * El padding vive acá adentro y no en el contenedor del host a propósito:
+ * cuando no hay ninguna ventana abierta el componente devuelve null, y un
+ * View con padding en Coach Data dejaría una franja vacía arriba de la
+ * pantalla de sesión todos los días que no hay check-in.
+ */
+function Shell({ children }) {
+    return _jsx(View, { style: { gap: 12, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }, children: children });
 }
 function ErrorBanner({ message, onRetry }) {
     const { colors } = useTheme();
