@@ -30,17 +30,27 @@
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2",
-    "react": "*"
+    "react": "*",
+    "react-native": "*",
+    "kalai-ui": "*"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "react-native": {
+      "optional": true
+    },
+    "kalai-ui": {
       "optional": true
     }
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.44.4",
     "@types/react": "^19",
+    "kalai-ui": "git+https://github.com/martincloos/kalai-ui.git#78999d66fa9b580fb0059af38bfd83cffed52bd7",
     "react": "19.1.0",
+    "react-native": "0.81.5",
     "typescript": "^5.3.3"
   }
 }

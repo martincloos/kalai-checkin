@@ -1,0 +1,13 @@
+# kalai-ui es nuestro propio paquete (dependencia git pineada por SHA) y se
+# distribuye como fuente TS sin compilar: corre "tsc" al instalarse, así que
+# necesita permiso explícito para ejecutar build scripts.
+#
+# Hace falta la clave completa (nombre@URL de tarball). El nombre solo NO
+# alcanza para dependencias git, ni en pnpm 10.34.5 ni en 11.24.x —
+# coach-data lo tiene declarado con el nombre solo y le funciona solo
+# porque su store ya tiene el paquete compilado de antes.
+# ⚠ Con pnpm 10.2x esta clave rompe el install con
+# ERR_PNPM_INVALID_VERSION_UNION (parsea lo que sigue al "@" como versión).
+# Ver el CHANGELOG de management-site, entrada del 2026-09-02.
+allowBuilds:
+  kalai-ui@https://codeload.github.com/martincloos/kalai-ui/tar.gz/78999d66fa9b580fb0059af38bfd83cffed52bd7: true

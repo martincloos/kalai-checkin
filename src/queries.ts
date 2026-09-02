@@ -25,6 +25,39 @@ function k(supabase: SupabaseClient) {
 }
 
 /**
+ * Los eventos en los que el usuario tiene al menos un barco asignado para
+ * declarar.
+ *
+ * Hace falta porque la app mobile de Coach Data no sabe nada de eventos:
+ * no tiene selector de evento ni contexto de evento en ningún lado. El
+ * banner del declarante tiene que descubrir solo en qué evento está
+ * parado.
+ *
+ * Se consulta `entrant_declarants` y no `event_entrants` a propósito: la
+ * RLS de la primera es `user_id = auth.uid()`, así que devuelve exactamente
+ * los barcos de este usuario. `event_entrants` le mostraría el roster
+ * completo a alguien que además sea staff, y este banner es la vista del
+ * declarante, no la del staff.
+ */
+export async function listMyCheckinEvents(supabase: SupabaseClient): Promise<string[]> {
+  const { data, error } = await k(supabase)
+    .from('entrant_declarants')
+    .select('event_entrants!inner(event_id)')
+  if (error) throw error
+
+  // PostgREST devuelve el embed como objeto o como array según cómo
+  // infiera la cardinalidad de la relación; se contemplan los dos.
+  const ids = new Set<string>()
+  for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+    const embed = row.event_entrants as { event_id?: string } | Array<{ event_id?: string }> | null
+    for (const e of Array.isArray(embed) ? embed : embed ? [embed] : []) {
+      if (e.event_id) ids.add(e.event_id)
+    }
+  }
+  return Array.from(ids)
+}
+
+/**
  * Ventanas abiertas AHORA para los barcos del usuario — es lo que alimenta
  * los banners del declarante (uno por combinación clase × acción).
  *

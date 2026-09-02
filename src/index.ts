@@ -14,6 +14,7 @@ export type {
 } from './types'
 
 export {
+  listMyCheckinEvents,
   listActiveWindows,
   listMyBoats,
   getWindowState,
