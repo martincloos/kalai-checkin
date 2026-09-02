@@ -1,5 +1,10 @@
 node_modules/
-dist/
+# dist/ SE COMMITEA a propósito. Este paquete se consume como dependencia
+# git, y compilar al instalarse (prepare: tsc) rompe el deploy de Vercel:
+# el store de pnpm vive dentro del proyecto, así que el install anidado del
+# prepare encuentra la raíz del consumidor y lo reinstala entero, en
+# recursión infinita. Ver el CHANGELOG de management-site (2026-09-02).
+# ⚠ Correr `pnpm build` y commitear dist/ ANTES de pushear.
 *.tsbuildinfo
 .env*
 !.env.example
