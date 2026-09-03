@@ -226,7 +226,7 @@ export default function AsignacionSection({ supabase, eventId, userId, canEdit, 
             </div>
           )}
 
-          <div className="field">
+          <div style={{ marginTop: 12 }}>
             <div className="label">Persona que declara</div>
             <select
               className="select"
@@ -245,7 +245,7 @@ export default function AsignacionSection({ supabase, eventId, userId, canEdit, 
 
           {selectedUser && (
             <>
-              <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
                 <select
                   className="select"
                   value={classFilter}
